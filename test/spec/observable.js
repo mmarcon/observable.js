@@ -55,7 +55,7 @@ describe('Observable', function(){
             language: ['italian', 'english']
         };
         var model = OO.Model({model: person});
-        model.on('change', changeCallback);
+        var cbid = model.on('change', changeCallback);
         model.age = 31;
 
         expect(changeCallback).toHaveBeenCalledWith('change', 'age');
@@ -64,5 +64,33 @@ describe('Observable', function(){
         model.language = ['italian', 'english', 'one day german'];
 
         expect(changeCallback).toHaveBeenCalledWith('change', 'language');
+        changeCallback.reset();
+
+        model.off('change', cbid);
+        model.age = 30;
+
+        expect(changeCallback).not.toHaveBeenCalled();
+    });
+
+    it('Observes models waiting for change events', function(){
+        var changeCallback = jasmine.createSpy('Something changed!');
+
+        var person = {
+            name: 'Max',
+            age: 30,
+            language: ['italian', 'english']
+        };
+        var model = OO.Model({model: person});
+        var observer = OO.Observer();
+        observer.observe(model, changeCallback);
+        model.age = 31;
+
+        expect(changeCallback).toHaveBeenCalledWith('change', 'age');
+        changeCallback.reset();
+
+        observer.unobserve(model);
+        model.age = 31;
+
+        expect(changeCallback).not.toHaveBeenCalled();
     });
 });
