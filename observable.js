@@ -31,28 +31,56 @@
         return [s4(), s4(), s4()].join('-');
     }
 
+    function isFunction(fn) {
+        return typeof fn === 'function';
+    }
+
+    Observable.ajax = function(options){
+        var req = new window.XMLHttpRequest();
+        req.open(options.method, options.url, true);
+        req.onreadystatechange = function (aEvt) {
+            var data, contentType;
+            if (req.readyState === 4 && req.status == 200) {
+                //Success
+                if(isFunction(options.success)) {
+                    data = req.responseText;
+                    contentType = req.getResponseHeader('Content-Type');
+                    if(contentType && /json/i.test(contentType)) {
+                        data = JSON.parse(data);
+                    }
+                    options.success.call(req, data);
+                }
+            }
+            else {
+                //Failure
+                options.error.call(req);
+            }
+        };
+        req.send(null);
+    };
+
     Observable.Model = function(options){
-        var instance = this;
         if(!(this instanceof Observable.Model)) {
             return new Observable.Model(options);
         }
         this._subs = {};
         this.source = options.source;
+        this.mapper = options.mapper || function(data){ return data; };
         this._state = {};
 
         Object.keys(options.model || {}).forEach(function(prop){
-            Object.defineProperty(instance, prop, {
+            Object.defineProperty(this, prop, {
                 enumerable: true,
                 set: function(value) {
-                    instance.trigger('change', prop);
-                    instance._state[prop] = value;
+                    this.trigger('change', prop);
+                    this._state[prop] = value;
                 },
                 get: function(){
-                    return instance._state[prop];
+                    return this._state[prop];
                 }
             });
-            instance._state[prop] = options.model[prop];
-        });
+            this._state[prop] = options.model[prop];
+        }.bind(this));
     };
 
     M = Observable.Model.prototype;
@@ -75,13 +103,29 @@
     };
 
     M.trigger = function(event, arg) {
-        var instance = this;
         if(!this._subs[event]) {
             return;
         }
         Object.keys(this._subs[event]).forEach(function(id){
-            var callback = instance._subs[event][id];
-            callback.call(instance._state, event, arg);
+            var callback = this._subs[event][id];
+            callback.call(this._state, event, arg);
+        }.bind(this));
+    };
+
+    M.refresh = function() {
+        if(!this.source) {
+            return;
+        }
+        Observable.ajax({
+            url: this.source,
+            success: function(data) {
+                var model = this.mapper(data), that = this;
+                Object.keys(model).forEach(function(p){
+                    //This should trigger a bunch of change events.
+                    //Should it only trigger one? How?
+                    that[p] = model[p];
+                });
+            }.bind(this)
         });
     };
 
