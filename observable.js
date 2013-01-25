@@ -53,7 +53,9 @@
             }
             else {
                 //Failure
-                options.error.call(req);
+                if(isFunction(options.error)) {
+                    options.error.call(req);
+                }
             }
         };
         req.send(null);
@@ -64,7 +66,7 @@
             return new Observable.Model(options);
         }
         this._subs = {};
-        this.source = options.source;
+        this._source = options.source;
         this.mapper = options.mapper || function(data){ return data; };
         this._state = {};
 
@@ -72,8 +74,8 @@
             Object.defineProperty(this, prop, {
                 enumerable: true,
                 set: function(value) {
-                    this.trigger('change', prop);
                     this._state[prop] = value;
+                    this.trigger('change', prop);
                 },
                 get: function(){
                     return this._state[prop];
@@ -81,6 +83,17 @@
             });
             this._state[prop] = options.model[prop];
         }.bind(this));
+
+        Object.defineProperty(this, 'source', {
+            enumerable: false,
+            set: function(value) {
+                this._source = value;
+                this.refresh();
+            },
+            get: function(){
+                return this._source;
+            }
+        });
     };
 
     M = Observable.Model.prototype;
@@ -117,7 +130,7 @@
             return;
         }
         Observable.ajax({
-            url: this.source,
+            url: this._source,
             success: function(data) {
                 var model = this.mapper(data), that = this;
                 Object.keys(model).forEach(function(p){
