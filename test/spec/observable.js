@@ -22,7 +22,16 @@
 describe('Observable', function(){
 
     beforeEach(function(){
-
+        window.XMLHttpRequest = function(){
+            this.open = jasmine.createSpy('XMLHttpRequest open');
+            this.send = function(){
+                this.onreadystatechange({});
+            }.bind(this);
+            this.readyState = 4;
+            this.status = 200;
+            this.getResponseHeader = jasmine.createSpy('XMLHttpRequest getResponseHeader').andReturn('application/json');
+            this.responseText = '{"response":{"name":"Max","age":31,"language":["italian","english"]},"meta":{"status":200}}';
+        };
     });
 
     it('Checks everything is defined', function(){
@@ -70,6 +79,29 @@ describe('Observable', function(){
         model.age = 30;
 
         expect(changeCallback).not.toHaveBeenCalled();
+    });
+
+    it('Refreshes the model by contacting the provided data source', function(){
+        var changeCallback = jasmine.createSpy('Something changed!');
+
+        var person = {
+            name: 'Max',
+            age: 30,
+            language: ['italian', 'english']
+        };
+        var model = OO.Model({
+            model: person,
+            source: '/person/1234',
+            mapper: function(data){
+                //Response is of type
+                //{resonse: {my person}, meta:{info}}
+                return data.response;
+            }});
+        var cbid = model.on('change', changeCallback);
+
+        model.refresh();
+
+        expect(changeCallback.callCount).toBe(3);
     });
 
     it('Observes models waiting for change events', function(){

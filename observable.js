@@ -37,10 +37,10 @@
 
     Observable.ajax = function(options){
         var req = new window.XMLHttpRequest();
-        req.open(options.method, options.url, true);
+        req.open((options.method || 'GET').toUpperCase(), options.url, true);
         req.onreadystatechange = function (aEvt) {
             var data, contentType;
-            if (req.readyState === 4 && req.status == 200) {
+            if (req.readyState === 4 && req.status === 200) {
                 //Success
                 if(isFunction(options.success)) {
                     data = req.responseText;
@@ -123,6 +123,8 @@
                 Object.keys(model).forEach(function(p){
                     //This should trigger a bunch of change events.
                     //Should it only trigger one? How?
+                    //Also how to efficiently set only properties that
+                    //actually changed?
                     that[p] = model[p];
                 });
             }.bind(this)
