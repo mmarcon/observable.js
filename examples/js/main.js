@@ -62,7 +62,6 @@
                         });
                     },
                     mouseout: function(){
-                        return;
                         Intent.stop();
                         APP.map.jHERE('nobubbles');
                     },
