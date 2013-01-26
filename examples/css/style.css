@@ -9,12 +9,12 @@ h1 {
 }
 
 .app {
-    margin: 2rem;
+    margin: 20px;
 }
 
 nav {
     position: absolute;
-    right: 2rem;
+    right: 20px;
     top: 0;
     bottom: 0;
     min-width: 200px;
@@ -22,11 +22,19 @@ nav {
     z-index: 100;
 }
 
-.map {
+.wrapper {
     position: absolute;
     left: 0;
-    right: 0;
+    right: 220px;
     height: 400px;
+}
+
+.map {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
 }
 
 nav ul {
@@ -36,12 +44,19 @@ nav ul {
 
 nav li {
     margin: 5px 0;
-    padding: 0;
+    padding: 5px;
     background: #222;
-    text-align: center;
     color: #f1a226;
     display: block;
     line-height: 1.5;
     font-size: 1.8rem;
     cursor: pointer;
+}
+
+.fsq-name {
+    background-position: 0 50%;
+    background-repeat: no-repeat;
+    padding-left: 35px;
+    min-height: 32px;
+    line-height: 32px;
 }
